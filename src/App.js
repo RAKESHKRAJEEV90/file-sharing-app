@@ -5,19 +5,27 @@ import ErrorModal from './ErrorModal';
 import localforage from 'localforage';
 import './App.css';
 
-const API_URL = '' // Change to your backend URL
+const API_URL = process.env.REACT_APP_API_URL; // Change to your backend URL
 
 function App() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [localFiles, setLocalFiles] = useState([]);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileToDownload, setFileToDownload] = useState(null);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const fileInputRef = useRef(null);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [cancelTokenSource, setCancelTokenSource] = useState(null);
 
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
   const fetchFiles = async () => {
     try {
       const response = await axios.get(`${API_URL}/files`);
@@ -105,7 +113,15 @@ function App() {
     setError(null); // Clear any previous errors
   };
 
+
   const downloadFile = async (fileName, password) => {
+    setIsDownloading(true);
+    setDownloadProgress(0);
+  
+    // Create a new CancelToken source
+    const source = axios.CancelToken.source();
+    setCancelTokenSource(source);
+  
     try {
       const response = await axios.get(`${API_URL}/check-password`, {
         params: { fileName, password }
@@ -114,6 +130,13 @@ function App() {
       if (response.data.valid === true) {
         const downloadResponse = await axios.get(`${API_URL}/download/${fileName}`, {
           responseType: 'blob',
+          cancelToken: source.token,
+          onDownloadProgress: (progressEvent) => {
+            const percent = Math.floor((progressEvent.loaded * 100) / progressEvent.total);
+            setIsModalOpen(false); // Close the password modal
+            setPassword('');
+            setDownloadProgress(percent);
+          },
         });
   
         if (downloadResponse.status === 200) {
@@ -125,7 +148,7 @@ function App() {
           link.click();
           link.parentNode.removeChild(link);
   
-          setIsModalOpen(false);
+          setIsModalOpen(false); // Close the password modal
           setPassword('');
         } else {
           throw new Error('Failed to download file. Status: ' + downloadResponse.status);
@@ -134,12 +157,27 @@ function App() {
         throw new Error('Incorrect password. Please try again.');
       }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      setError(error.message);
-      setIsModalOpen(false); // Close the password modal
-      setPassword('');
+      if (axios.isCancel(error)) {
+        console.log('Download canceled:', error.message);
+      } else {
+        console.error('Error downloading file:', error);
+        setError(error.message);
+      }
+    } finally {
+      setIsDownloading(false);
     }
   };
+  
+
+const cancelDownload = () => {
+  if (cancelTokenSource) {
+    cancelTokenSource.cancel('Download canceled by user.');
+  }
+  setIsDownloading(false);
+  setDownloadProgress(0);
+};
+
+  
   const handleModalSubmit = () => {
     if (fileToDownload && password) {
       downloadFile(fileToDownload, password);
@@ -226,15 +264,55 @@ function App() {
             <span className="close" onClick={() => { setIsModalOpen(false); setPassword(''); setError(null); }}>&times;</span>
             <p>Please enter password:</p>
             {error && <p className="error-message">{error}</p>}
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="password-input-container">
+  <input
+    type={showPassword ? "text" : "password"}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    placeholder="Enter password"
+  />
+  <button id='toggle-password-eye'
+    className="toggle-password-visibility" 
+    onClick={togglePasswordVisibility}
+    type="button"
+    aria-label={showPassword ? "Hide password" : "Show password"}
+  >
+    {showPassword ? (
+      <svg viewBox="0 0 24 24">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    ) : (
+      <svg viewBox="0 0 24 24" transform="translate(0, 1)">
+  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+  <line x1="2" y1="2" x2="22" y2="22"></line>
+</svg>
+    )}
+  </button>
+</div>
             <button onClick={handleModalSubmit}>Submit</button>
           </div>
         </div>
       )}
+{isDownloading && (
+  <div className="download-status-modal">
+    <div className="download-status-content">
+      <button className="close-modal" onClick={() => cancelDownload()}>×</button>
+      <h3>Downloading File</h3>
+      <div className="progress-bar-container">
+        <div 
+          className="progress-bar" 
+          style={{width: `${downloadProgress}%`}}
+        ></div>
+      </div>
+      <p>{downloadProgress}% Complete</p>
+      <button className="cancel-download" onClick={() => cancelDownload()}>
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
       {error && (
         <ErrorModal 
           message={error} 

@@ -418,15 +418,6 @@ li:hover {
   }
 }
 
-/* Night mode styles */
-/* .dark-mode .footer {
-  background-color: #2c3e50;
-  border-top-color: #34495e;
-} */
-
-.dark-mode .footer p {
-  color: #bdc3c7;
-}
 
 .dark-mode .paypal-button {
   background-color: #f5f5f5;
@@ -436,8 +427,160 @@ li:hover {
  background-color: var(--container-background);
  border-top-color: var(--border-color);
 }
-/*
+
 
 .dark-mode .footer p {
   color: var(--text-color);
-} */
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.password-input-container input {
+  width: 100%;
+  padding: 0.75rem;
+  padding-right: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.password-input-container input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* First, reset the button styles */
+#toggle-password-eye.toggle-password-visibility {
+  all: unset;
+  cursor: pointer;
+}
+
+/* Then, apply the specific styles we want */
+#toggle-password-eye.toggle-password-visibility {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+#toggle-password-eye.toggle-password-visibility:hover {
+  background: none;
+  transform: translateY(-50%);
+  box-shadow: none;
+}
+
+#toggle-password-eye.toggle-password-visibility svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+  display: block;
+}
+
+#toggle-password-eye.toggle-password-visibility:hover svg {
+  opacity: 1;
+}
+
+/* Ensure the button doesn't change size or position on hover/focus */
+#toggle-password-eye.toggle-password-visibility:hover,
+#toggle-password-eye.toggle-password-visibility:focus {
+  outline: none;
+  transform: translateY(-50%);
+}
+.download-status-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.download-status-content {
+  background-color: var(--container-background);
+  color: var(--text-color);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.close-modal:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 20px;
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+}
+
+.cancel-download {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-download:hover {
+  background-color: #d32f2f;
+}
